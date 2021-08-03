@@ -9,23 +9,26 @@ void menu()
     printf("Hello!\nPlease select one of the following options by typing the number and enter:\n1. New Account\n2. List Accounts\n3. Exit\n");
     int option;
     scanf("%i", &option);
-    // change this to a swich case
-    if (option == 1)
+
+    switch (scanf("%i", &option))
     {
+    case 1:
         newAccount();
-    }
-    if (option == 2)
-    {
+        break;
+    case 2:
         accountList();
-    }
-    if (option == 3)
-    {
+        break;
+    case 3:
         exitManu();
+        break;
+    default:
+        invalidInput();
     }
 }
 
 int exitManu()
 {
+    printf("Exiting...");
     return 0;
 }
 
