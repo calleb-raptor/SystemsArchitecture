@@ -18,6 +18,12 @@ void testprint()
 //main calls all functions
 int main()
 {
+    int i;
+    char text[5] = "Hello";
+    for (i = 0; i < 5; ++i)
+    {
+        printf("%c\n", text[i]);
+    }
     testprint();
     return 0;
 }
