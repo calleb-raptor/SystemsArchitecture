@@ -57,14 +57,22 @@ void newAccount()
         {
             printf("Account set up with below details:\nAccount Name: %s\nAccount Number: %i\n", name, accountNumber);
         }
-        else
+        else if (agreement == 'N')
         {
             printf("Okay... Would you like to change the details of the account?\nPlease restart the program...");
         }
+        else
+        {
+            printf("Invalid input...");
+        }
+    }
+    else if (agreement == 'N')
+    {
+        printf("Exiting...");
     }
     else
     {
-        printf("Exiting...");
+        printf("Invalid input...");
     }
 }
 
