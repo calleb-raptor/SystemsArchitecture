@@ -9,7 +9,7 @@ void menu()
     printf("Hello!\nPlease select one of the following options by typing the number and enter:\n1. New Account\n2. List Accounts\n3. Exit\n");
     int option;
     scanf("%i", &option);
-
+    // change this to a swich case
     if (option == 1)
     {
         newAccount();
@@ -52,6 +52,7 @@ void newAccount()
         printf("You entered: %i\nIs this correct?\n", accountNumber);
         printf("[Y]      [N]\n");
         scanf(" %c", &agreement);
+        // change this to a swich case
         if (agreement == 'Y')
         {
             printf("Account set up with below details:\nAccount Name: %s\nAccount Number: %i\n", name, accountNumber);
@@ -69,6 +70,7 @@ void newAccount()
     {
         printf("Exiting...");
     }
+    // create a function in and of itself for invalid input...makes the code more reusable
     else
     {
         printf("Invalid input...");
