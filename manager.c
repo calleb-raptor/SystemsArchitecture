@@ -1,10 +1,17 @@
 #include <stdio.h>
+#include <string.h>
+
+struct Account
+{
+    char name[256];
+    int accountNumber;
+};
 
 void newAccount();
 int exitManu();
 void accountList();
 void invalidInput();
-void accountNumberFlow();
+void accountNumberFlow(struct Account account);
 
 void invalidInput()
 {
@@ -48,6 +55,7 @@ void newAccount()
 {
     char name[20];
     char agreement;
+    struct Account account;
     printf("New Account!\nPlease enter the name of the account:\n");
     scanf("%s", name);
     printf("You entered: %s\nIs this correct?\n", name);
@@ -57,7 +65,8 @@ void newAccount()
     {
     case 'y':
     case 'Y':
-        accountNumberFlow(name);
+        strcpy(account.name, name);
+        accountNumberFlow(account);
         break;
     case 'n':
     case 'N':
@@ -68,7 +77,7 @@ void newAccount()
     }
 }
 
-void accountNumberFlow(char *name)
+void accountNumberFlow(struct Account account)
 {
     int accountNumber;
     char agreement;
@@ -82,7 +91,8 @@ void accountNumberFlow(char *name)
     {
     case 'y':
     case 'Y':
-        printf("Account set up with below details:\nAccount Name: %s\nAccount Number: %i\n", name, accountNumber);
+        account.accountNumber = accountNumber;
+        printf("Account set up with below details:\nAccount Name: %s\nAccount Number: %i\n", account.name, account.accountNumber);
         break;
     case 'n':
     case 'N':
