@@ -109,7 +109,7 @@ void accountNumberFlow(struct Account account)
 
 int saveAccount(struct Account account)
 {
-    printf("Account: %s, %i", account.name, account.accountNumber);
+    printf("Account: %s\n%i", account.name, account.accountNumber);
     sqlite3 *db;
     char *err_msg = 0;
     int id = 1;
@@ -123,7 +123,7 @@ int saveAccount(struct Account account)
         return 1;
     }
 
-    char *sql = sqlite3_mprintf("INSERT INTO accounts VALUES(%q,%q,%q)", id, account.name, account.accountNumber);
+    char *sql = sqlite3_mprintf("INSERT INTO accounts VALUES(%i,%s,%i)", id, account.name, account.accountNumber);
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
     if (rc != SQLITE_OK)
@@ -140,9 +140,8 @@ int saveAccount(struct Account account)
 
 int initialiseDB()
 {
-    sqlite3 *db;
     char *err_msg = 0;
-
+    sqlite3 *db;
     int rc = sqlite3_open("BankManager.db", &db);
 
     if (rc != SQLITE_OK)
