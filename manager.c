@@ -123,7 +123,7 @@ int saveAccount(struct Account account)
         return 1;
     }
 
-    char *sql = sqlite3_mprintf("INSERT INTO accounts VALUES(%i,%s,%i)", id, account.name, account.accountNumber);
+    char *sql = sqlite3_mprintf("INSERT INTO accounts(id, name, number) VALUES(%i,%s,%i)", id, account.name, account.accountNumber);
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
     if (rc != SQLITE_OK)
