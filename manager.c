@@ -140,7 +140,7 @@ int initialiseDB()
         return 1;
     }
 
-    char *sql = "CREATE TABLE IF NOT EXISTS accounts(id, name, number);";
+    char *sql = "CREATE TABLE IF NOT EXISTS accounts(id INT PRIMARY KEY, name TEXT, number INT);";
 
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
