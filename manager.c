@@ -14,7 +14,7 @@ void accountList();
 void invalidInput();
 void accountNumberFlow(struct Account account);
 int initialiseDB();
-int saveAccount();
+int saveAccount(struct Account account);
 
 void invalidInput()
 {
@@ -96,7 +96,7 @@ void accountNumberFlow(struct Account account)
     case 'Y':
         account.accountNumber = accountNumber;
         printf("Account set up with below details:\nAccount Name: %s\nAccount Number: %i\n", account.name, account.accountNumber);
-        // TODO: Insert new account details into database
+        saveAccount(account);
         break;
     case 'n':
     case 'N':
@@ -107,11 +107,11 @@ void accountNumberFlow(struct Account account)
     }
 }
 
-int saveAccount()
+int saveAccount(struct Account account)
 {
-    // TODO: Implement :: how to insert scoped variables from a struct Account?
     sqlite3 *db;
     char *err_msg = 0;
+    int id = 1;
 
     int rc = sqlite3_open("BankManager.db", &db);
 
@@ -122,7 +122,18 @@ int saveAccount()
         return 1;
     }
 
-    char *sql = "INSERT INTO accounts VALUES(?,?,?)";
+    char *sql = sqlite3_mprintf("INSERT INTO accounts VALUES(%q,%q,%q)", id, account.name, account.accountNumber);
+    rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
     return 0;
 }
 
