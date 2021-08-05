@@ -96,6 +96,7 @@ void accountNumberFlow(struct Account account)
     case 'Y':
         account.accountNumber = accountNumber;
         printf("Account set up with below details:\nAccount Name: %s\nAccount Number: %i\n", account.name, account.accountNumber);
+        // TODO: Insert new account details into database
         break;
     case 'n':
     case 'N':
@@ -108,6 +109,7 @@ void accountNumberFlow(struct Account account)
 
 int saveAccount()
 {
+    // TODO: Implement :: how to insert scoped variables from a struct Account?
     sqlite3 *db;
     char *err_msg = 0;
 
