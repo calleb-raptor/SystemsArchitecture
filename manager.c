@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <sqlite3.h>
 
 struct Account
 {
@@ -12,6 +13,8 @@ int exitManu();
 void accountList();
 void invalidInput();
 void accountNumberFlow(struct Account account);
+int initialiseDB();
+int saveAccount();
 
 void invalidInput()
 {
@@ -103,8 +106,57 @@ void accountNumberFlow(struct Account account)
     }
 }
 
+int saveAccount()
+{
+    sqlite3 *db;
+    char *err_msg = 0;
+
+    int rc = sqlite3_open("BankManager.db", &db);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+
+    char *sql = "INSERT INTO accounts VALUES(?,?,?)";
+    return 0;
+}
+
+int initialiseDB()
+{
+    sqlite3 *db;
+    char *err_msg = 0;
+
+    int rc = sqlite3_open("BankManager.db", &db);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+
+    char *sql = "CREATE TABLE IF NOT EXISTS accounts(id, name, number);";
+
+    rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
+    return 0;
+}
+
 int main()
 {
+    initialiseDB();
     menu();
     return 0;
 }
