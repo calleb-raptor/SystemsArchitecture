@@ -109,6 +109,7 @@ void accountNumberFlow(struct Account account)
 
 int saveAccount(struct Account account)
 {
+    printf("Account: %s, %i", account.name, account.accountNumber);
     sqlite3 *db;
     char *err_msg = 0;
     int id = 1;
