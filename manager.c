@@ -17,6 +17,8 @@ void accountNumberFlow(struct Account account);
 int initialiseDB();
 int saveAccount(struct Account account);
 int callback();
+int callcount();
+int viewTrans();
 
 void invalidInput()
 {
@@ -25,7 +27,7 @@ void invalidInput()
 
 void menu()
 {
-    printf("Hello!\nPlease select one of the following options by typing the number and enter:\n1. New Account\n2. List Accounts\n3. Exit\n");
+    printf("Hello!\nPlease select one of the following options by typing the number and enter:\n1. New Account\n2. List Accounts\n3. View Transactions\n4. Exit\n");
     int option;
     // scanf("%i", &option);
     scanf("%i", &option);
@@ -38,11 +40,80 @@ void menu()
         accountList();
         break;
     case 3:
+        viewTrans();
+        break;
+    case 4:
         exitManu();
         break;
     default:
         invalidInput();
     }
+}
+
+int viewTrans()
+{
+    int accountNumber;
+    sqlite3 *db;
+    char *err_msg = 0;
+    int rc = sqlite3_open("BankManager.db", &db);
+    char option;
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+    printf("Please choose an account to view by inputting the account number:\n");
+    scanf(" %i", &accountNumber);
+    printf("getting transactions...\n");
+
+    char *sql = sqlite3_mprintf("SELECT * FROM transactions WHERE accountID = %i", accountNumber);
+
+    char *count = sqlite3_mprintf("SELECT count(accountID) FROM transactions WHERE accountID = %i", accountNumber);
+
+    rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
+
+    rc = sqlite3_exec(db, count, callcount, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
+
+    printf("Would you like to add a new transaction to the database?\n");
+
+    scanf(" %c", &option);
+
+    switch (option)
+    {
+    case 'y':
+    case 'Y':
+        printf("add trans");
+        break;
+    case 'n':
+    case 'N':
+        exitManu();
+        break;
+    default:
+        invalidInput();
+    }
+    return 0;
+}
+
+int callcount(void *NotUsed, int argc, char **argv, char **azColName)
+{
+    NotUsed = 0;
+    for (int i = 0; i < argc; ++i)
+    {
+        printf("You have %s = %s transactions\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
 }
 
 int exitManu()
