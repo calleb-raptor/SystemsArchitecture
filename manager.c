@@ -3,12 +3,14 @@
 #include <sqlite3.h>
 #include <stdlib.h>
 
+//creates an object of type Account with attrs name and acc number :: can be passed around and attrs accessed
 struct Account
 {
     char name[256];
     int accountNumber;
 };
 
+//creates an object of type Transaction with attrs id, accountid, amount, narrative and date
 struct Transaction
 {
     int id;
@@ -18,6 +20,7 @@ struct Transaction
     char date[256];
 };
 
+//declaration of functions within program
 void newAccount();
 int exitManu();
 int accountList();
@@ -31,6 +34,7 @@ int viewTrans();
 void newTrans(struct Transaction transaction);
 int saveTrans(struct Transaction transaction);
 
+//define all functions below
 void invalidInput()
 {
     printf("Invalid input...\n");
