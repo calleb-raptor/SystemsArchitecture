@@ -9,6 +9,15 @@ struct Account
     int accountNumber;
 };
 
+struct Transaction
+{
+    int id;
+    int accountID;
+    double amount;
+    char narrative[256];
+    char date[256];
+};
+
 void newAccount();
 int exitManu();
 int accountList();
@@ -19,6 +28,8 @@ int saveAccount(struct Account account);
 int callback();
 int callcount();
 int viewTrans();
+void newTrans(struct Transaction transaction);
+int saveTrans(struct Transaction transaction);
 
 void invalidInput()
 {
@@ -53,6 +64,7 @@ void menu()
 int viewTrans()
 {
     int accountNumber;
+    struct Transaction transaction;
     sqlite3 *db;
     char *err_msg = 0;
     int rc = sqlite3_open("BankManager.db", &db);
@@ -71,9 +83,9 @@ int viewTrans()
 
     char *count = sqlite3_mprintf("SELECT count(accountID) FROM transactions WHERE accountID = %i", accountNumber);
 
-    rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
-
     rc = sqlite3_exec(db, count, callcount, 0, &err_msg);
+
+    rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
 
     if (rc != SQLITE_OK)
     {
@@ -93,7 +105,8 @@ int viewTrans()
     {
     case 'y':
     case 'Y':
-        printf("add trans");
+        transaction.accountID = accountNumber;
+        newTrans(transaction);
         break;
     case 'n':
     case 'N':
@@ -110,9 +123,69 @@ int callcount(void *NotUsed, int argc, char **argv, char **azColName)
     NotUsed = 0;
     for (int i = 0; i < argc; ++i)
     {
-        printf("You have %s = %s transactions\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        printf("You have %s transactions:\n", argv[i] ? argv[i] : "NULL");
     }
     printf("\n");
+    return 0;
+}
+
+void newTrans(struct Transaction transaction)
+{
+    char ack;
+    printf("New transaction\nPlease input the amount of the transaction:\n");
+    scanf(" %lf", &transaction.amount);
+    printf("Enter Narrative:\n");
+    scanf(" %s", transaction.narrative);
+    printf("Enter date of transaction\n");
+    scanf(" %s", transaction.date);
+    printf("You have entered the below transaction details:\nAmount: %f\nNarrative: %s\nDate: %s\n", transaction.amount, transaction.narrative, transaction.date);
+    transaction.id = 1;
+    printf("Are these details correct?\n");
+    printf("[Y]    [N]\n");
+    scanf(" %c", &ack);
+    switch (ack)
+    {
+    case 'y':
+    case 'Y':
+        saveTrans(transaction);
+        printf("Saving...\n");
+        break;
+    case 'n':
+    case 'N':
+        exitManu();
+        break;
+    default:
+        invalidInput();
+    }
+}
+
+int saveTrans(struct Transaction transaction)
+{
+    sqlite3 *db;
+    char *err_msg = 0;
+    int rc = sqlite3_open("BankManager.db", &db);
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+
+    printf("transaction: %s\namount: %f\n", transaction.narrative, transaction.amount);
+
+    char *sql = sqlite3_mprintf("INSERT INTO transactions(accountID, amount, narrative, date) VALUES(%i, %f, '%s', '%s');", transaction.accountID, transaction.amount, transaction.narrative, transaction.date);
+
+    rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
     return 0;
 }
 
@@ -126,6 +199,7 @@ int accountList()
 {
     sqlite3 *db;
     char *err_msg = 0;
+    char ack;
     int rc = sqlite3_open("BankManager.db", &db);
 
     if (rc != SQLITE_OK)
@@ -147,6 +221,22 @@ int accountList()
     }
 
     sqlite3_close(db);
+    printf("Would you like to view transactions within an account?\nPlease choose an account to view:\n");
+    printf("[Y]    [N]\n");
+    scanf(" %c", &ack);
+    switch (ack)
+    {
+    case 'y':
+    case 'Y':
+        viewTrans();
+        break;
+    case 'n':
+    case 'N':
+        exitManu();
+        break;
+    default:
+        invalidInput();
+    }
     return 0;
 }
 
@@ -258,7 +348,7 @@ int initialiseDB()
     }
 
     char *sql = "CREATE TABLE IF NOT EXISTS accounts(id INT PRIMARY KEY, name TEXT, number INT);"
-                "CREATE TABLE IF NOT EXISTS transactions(accountID INT PRIMARY KEY, Amount TEXT, Narrative TEXT, Date TEXT)";
+                "CREATE TABLE IF NOT EXISTS transactions(accountID INT, Amount TEXT, Narrative TEXT, Date TEXT)";
 
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
