@@ -1,21 +1,40 @@
 #include <stdio.h>
 #include <string.h>
 #include <sqlite3.h>
+#include <stdlib.h>
 
+//creates an object of type Account with attrs name and acc number :: can be passed around and attrs accessed
 struct Account
 {
     char name[256];
     int accountNumber;
 };
 
+//creates an object of type Transaction with attrs id, accountid, amount, narrative and date
+struct Transaction
+{
+    int id;
+    int accountID;
+    double amount;
+    char narrative[256];
+    char date[256];
+};
+
+//declaration of functions within program
 void newAccount();
 int exitManu();
-void accountList();
+int accountList();
 void invalidInput();
 void accountNumberFlow(struct Account account);
 int initialiseDB();
 int saveAccount(struct Account account);
+int callback();
+int callcount();
+int viewTrans();
+void newTrans(struct Transaction transaction);
+int saveTrans(struct Transaction transaction);
 
+//define all functions below
 void invalidInput()
 {
     printf("Invalid input...\n");
@@ -23,11 +42,11 @@ void invalidInput()
 
 void menu()
 {
-    printf("Hello!\nPlease select one of the following options by typing the number and enter:\n1. New Account\n2. List Accounts\n3. Exit\n");
+    printf("Hello!\nPlease select one of the following options by typing the number and enter:\n1. New Account\n2. List Accounts\n3. View Transactions\n4. Exit\n");
     int option;
     // scanf("%i", &option);
-
-    switch (scanf("%i", &option))
+    scanf("%i", &option);
+    switch (option)
     {
     case 1:
         newAccount();
@@ -36,11 +55,142 @@ void menu()
         accountList();
         break;
     case 3:
+        viewTrans();
+        break;
+    case 4:
         exitManu();
         break;
     default:
         invalidInput();
     }
+}
+
+int viewTrans()
+{
+    int accountNumber;
+    struct Transaction transaction;
+    sqlite3 *db;
+    char *err_msg = 0;
+    int rc = sqlite3_open("BankManager.db", &db);
+    char option;
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+    printf("Please choose an account to view by inputting the account number:\n");
+    scanf(" %i", &accountNumber);
+    printf("getting transactions...\n");
+
+    char *sql = sqlite3_mprintf("SELECT * FROM transactions WHERE accountID = %i", accountNumber);
+
+    char *count = sqlite3_mprintf("SELECT count(accountID) FROM transactions WHERE accountID = %i", accountNumber);
+
+    rc = sqlite3_exec(db, count, callcount, 0, &err_msg);
+
+    rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
+
+    printf("Would you like to add a new transaction to the database?\n");
+
+    scanf(" %c", &option);
+
+    switch (option)
+    {
+    case 'y':
+    case 'Y':
+        transaction.accountID = accountNumber;
+        newTrans(transaction);
+        break;
+    case 'n':
+    case 'N':
+        exitManu();
+        break;
+    default:
+        invalidInput();
+    }
+    return 0;
+}
+
+int callcount(void *NotUsed, int argc, char **argv, char **azColName)
+{
+    NotUsed = 0;
+    for (int i = 0; i < argc; ++i)
+    {
+        printf("You have %s transactions:\n", argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
+}
+
+void newTrans(struct Transaction transaction)
+{
+    char ack;
+    printf("New transaction\nPlease input the amount of the transaction:\n");
+    scanf(" %lf", &transaction.amount);
+    printf("Enter Narrative:\n");
+    scanf(" %s", transaction.narrative);
+    printf("Enter date of transaction\n");
+    scanf(" %s", transaction.date);
+    printf("You have entered the below transaction details:\nAmount: %f\nNarrative: %s\nDate: %s\n", transaction.amount, transaction.narrative, transaction.date);
+    transaction.id = 1;
+    printf("Are these details correct?\n");
+    printf("[Y]    [N]\n");
+    scanf(" %c", &ack);
+    switch (ack)
+    {
+    case 'y':
+    case 'Y':
+        saveTrans(transaction);
+        printf("Saving...\n");
+        break;
+    case 'n':
+    case 'N':
+        exitManu();
+        break;
+    default:
+        invalidInput();
+    }
+}
+
+int saveTrans(struct Transaction transaction)
+{
+    sqlite3 *db;
+    char *err_msg = 0;
+    int rc = sqlite3_open("BankManager.db", &db);
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+
+    printf("transaction: %s\namount: %f\n", transaction.narrative, transaction.amount);
+
+    char *sql = sqlite3_mprintf("INSERT INTO transactions(accountID, amount, narrative, date) VALUES(%i, %f, '%s', '%s');", transaction.accountID, transaction.amount, transaction.narrative, transaction.date);
+
+    rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
+    return 0;
 }
 
 int exitManu()
@@ -49,9 +199,60 @@ int exitManu()
     return 0;
 }
 
-void accountList()
+int accountList()
 {
-    printf("This is where the account list will go");
+    sqlite3 *db;
+    char *err_msg = 0;
+    char ack;
+    int rc = sqlite3_open("BankManager.db", &db);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database\n");
+        sqlite3_close(db);
+        return 1;
+    }
+
+    char *sql = "SELECT * FROM accounts;";
+    rc = sqlite3_exec(db, sql, callback, 0, &err_msg);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error opening database: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return 1;
+    }
+
+    sqlite3_close(db);
+    printf("Would you like to view transactions within an account?\nPlease choose an account to view:\n");
+    printf("[Y]    [N]\n");
+    scanf(" %c", &ack);
+    switch (ack)
+    {
+    case 'y':
+    case 'Y':
+        viewTrans();
+        break;
+    case 'n':
+    case 'N':
+        exitManu();
+        break;
+    default:
+        invalidInput();
+    }
+    return 0;
+}
+
+int callback(void *NotUsed, int argc, char **argv, char **azColName)
+{
+    NotUsed = 0;
+    for (int i = 0; i < argc; ++i)
+    {
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
 }
 
 void newAccount()
@@ -111,7 +312,6 @@ int saveAccount(struct Account account)
 {
     sqlite3 *db;
     char *err_msg = 0;
-    int id = 1;
 
     int rc = sqlite3_open("BankManager.db", &db);
 
@@ -122,7 +322,7 @@ int saveAccount(struct Account account)
         return 1;
     }
 
-    char *sql = sqlite3_mprintf("INSERT INTO accounts(id, name, number) VALUES(%i, '%s', %i)", id, account.name, account.accountNumber);
+    char *sql = sqlite3_mprintf("INSERT INTO accounts(name, number) VALUES('%s', %i)", account.name, account.accountNumber);
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
     if (rc != SQLITE_OK)
@@ -150,7 +350,8 @@ int initialiseDB()
         return 1;
     }
 
-    char *sql = "CREATE TABLE IF NOT EXISTS accounts(id INT PRIMARY KEY, name TEXT, number INT);";
+    char *sql = "CREATE TABLE IF NOT EXISTS accounts(name TEXT, number INT);"
+                "CREATE TABLE IF NOT EXISTS transactions(accountID INT, Amount TEXT, Narrative TEXT, Date TEXT)";
 
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
