@@ -271,13 +271,16 @@ void newAccount()
     case 'Y':
         strcpy(account.name, name);
         accountNumberFlow(account);
+        menu();
         break;
     case 'n':
     case 'N':
-        exitManu();
+        printf("Okay, please re-enter the details\n");
+        newAccount();
         break;
     default:
         invalidInput();
+        newAccount();
     }
 }
 
@@ -301,10 +304,12 @@ void accountNumberFlow(struct Account account)
         break;
     case 'n':
     case 'N':
-        printf("Okay... Would you like to change the details of the account?\nPlease restart the program...");
+        printf("Okay... Would you like to change the details of the account?\n");
+        newAccount();
         break;
     default:
         invalidInput();
+        newAccount();
     }
 }
 
