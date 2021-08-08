@@ -308,7 +308,6 @@ int saveAccount(struct Account account)
 {
     sqlite3 *db;
     char *err_msg = 0;
-    int id = 1;
 
     int rc = sqlite3_open("BankManager.db", &db);
 
@@ -319,7 +318,7 @@ int saveAccount(struct Account account)
         return 1;
     }
 
-    char *sql = sqlite3_mprintf("INSERT INTO accounts(id, name, number) VALUES(%i, '%s', %i)", id, account.name, account.accountNumber);
+    char *sql = sqlite3_mprintf("INSERT INTO accounts(name, number) VALUES('%s', %i)", account.name, account.accountNumber);
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 
     if (rc != SQLITE_OK)
@@ -347,7 +346,7 @@ int initialiseDB()
         return 1;
     }
 
-    char *sql = "CREATE TABLE IF NOT EXISTS accounts(id INT PRIMARY KEY, name TEXT, number INT);"
+    char *sql = "CREATE TABLE IF NOT EXISTS accounts(name TEXT, number INT);"
                 "CREATE TABLE IF NOT EXISTS transactions(accountID INT, Amount TEXT, Narrative TEXT, Date TEXT)";
 
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
