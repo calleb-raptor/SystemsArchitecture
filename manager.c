@@ -195,7 +195,7 @@ int saveTrans(struct Transaction transaction)
 
 int exitManu()
 {
-    printf("Exiting...");
+    printf("Exiting...\n");
     return 0;
 }
 
